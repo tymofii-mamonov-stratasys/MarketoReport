@@ -1,0 +1,77 @@
+﻿
+@model PagedList.IPagedList<PlayingWithMarketo.ViewModels.ActivityViewModel>
+@using PagedList.Mvc
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+@{
+    ViewBag.Title = "Marketo Information";
+}
+
+<div>
+    @using (Html.BeginForm("Activities", "Marketo"))
+    {
+        <div class="form-group">
+            @Html.Label("Start Date: ")
+            @Html.TextBox("startDate", null, new { type = "datetime-local" })
+        </div>
+        <div class="form-group">
+            @Html.Label("End Date: ")
+            @Html.TextBox("endDate", null, new { type = "datetime-local" })
+        </div>
+        <button type="submit">View</button>
+    }
+    @foreach (var leadData in Model)
+    {
+        <div class="leadInfo" style="border: 1px solid black">
+            <div class="showInfo" style="background-color: black; height: 10px; width: 10px; display:inline-block"></div>
+            <span><strong>Lead ID:</strong> @leadData.LeadId</span>
+            <span><strong>Activity Type:</strong> @leadData.ActivityType</span>
+            <span><strong>Campaign Id:</strong> @leadData.CampaignId</span>
+            <span><strong>SFDC ID:</strong> @leadData.SFDCId</span>
+            <span><strong>Activity Date:</strong> @leadData.ActivityDate</span>
+        </div>
+        <div style="border: 1px solid black; height: 50px;" class="hidden">@leadData.Attributes</div>
+    }
+
+    Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount
+
+    @Html.PagedListPager(Model, page => Url.Action("Activities",
+        new { page, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate }))
+</div>
+
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(".showInfo").click(function () {
+            $(this).parent().next().toggleClass("hidden");
+        });
+        $(document).ready(function () {
+            
+            // Get the modal
+            var modal = document.getElementById('myModal');
+
+            // Get the button that opens the modal
+            var btn = document.getElementById("myBtn");
+
+            // Get the <span> element that closes the modal
+            var span = document.getElementsByClassName("close")[0];
+
+            // When the user clicks on the button, open the modal
+            btn.onclick = function () {
+                modal.style.display = "block";
+            }
+
+            // When the user clicks on <span> (x), close the modal
+            span.onclick = function () {
+                modal.style.display = "none";
+            }
+
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+        });
+    </script>
+}
