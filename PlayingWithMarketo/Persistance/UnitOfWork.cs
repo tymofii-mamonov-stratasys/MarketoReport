@@ -16,6 +16,7 @@ namespace PlayingWithMarketo.Persistance
             _context = context;
             LeadActivities = new LeadActivityRepository(_context);
             Activities = new ActivityRepository(_context);
+            ExportJobs = new ExportJobRespository(_context);
         }
 
         public void Complete()

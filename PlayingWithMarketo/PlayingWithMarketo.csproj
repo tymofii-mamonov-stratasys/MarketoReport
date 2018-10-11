@@ -247,8 +247,8 @@
     <Compile Include="Persistance\Repositories\LeadActivityRepository.cs" />
     <Compile Include="Persistance\MarketoHelper.cs" />
     <Compile Include="Persistance\UnitOfWork.cs" />
-    <Compile Include="ViewModels\ActivityViewModel.cs" />
-    <Compile Include="ViewModels\MarketoViewModel.cs" />
+    <Compile Include="Core\ViewModels\ActivityViewModel.cs" />
+    <Compile Include="Core\ViewModels\MarketoViewModel.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

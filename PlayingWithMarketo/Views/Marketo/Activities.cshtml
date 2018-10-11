@@ -29,7 +29,7 @@
             <span><strong>SFDC ID:</strong> @leadData.SFDCId</span>
             <span><strong>Activity Date:</strong> @leadData.ActivityDate</span>
         </div>
-        <div style="border: 1px solid black; height: 50px;" class="hidden">@leadData.Attributes</div>
+        <div style="border: 1px solid black; height: auto;" class="hidden">@leadData.Attributes</div>
     }
 
     Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount

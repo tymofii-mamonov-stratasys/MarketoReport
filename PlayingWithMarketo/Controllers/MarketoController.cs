@@ -1,9 +1,9 @@
 ﻿using PagedList;
 using PlayingWithMarketo.Core;
 using PlayingWithMarketo.Core.Models;
+using PlayingWithMarketo.Core.ViewModels;
 using PlayingWithMarketo.Marketo.Enums;
 using PlayingWithMarketo.Persistance;
-using PlayingWithMarketo.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,7 +56,6 @@ namespace PlayingWithMarketo.Controllers
                 string jobStatus = "";
                 Status? jobStatusEnum;
                 jobStatus = _unitOfWork.ExportJobs.GetJobStatus(exportJobId);
-                //db.ExportJobs.SingleOrDefault(j => j.ExportId == exportJobId).Status;
                 jobStatusEnum = (Status)Enum.Parse(typeof(Status), jobStatus, true);
 
                 while (jobStatusEnum != Status.Completed && jobStatusEnum != Status.Failed)
@@ -74,7 +73,6 @@ namespace PlayingWithMarketo.Controllers
             foreach (var leadActivity in leadActivities)
             {
                 var activityType = _unitOfWork.Activities.GetActivity(leadActivity.ActivityId);
-                //db.Activities.Single(a => a.Id == leadActivity.ActivityId).ActivityName;
                 var activityViewModel = new ActivityViewModel()
                 {
                     LeadId = leadActivity.Lead.LeadId.ToString(),

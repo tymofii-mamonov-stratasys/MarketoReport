@@ -1,7 +1,7 @@
 ﻿using PagedList;
 using System;
 
-namespace PlayingWithMarketo.ViewModels
+namespace PlayingWithMarketo.Core.ViewModels
 {
     public class MarketoViewModel
     {

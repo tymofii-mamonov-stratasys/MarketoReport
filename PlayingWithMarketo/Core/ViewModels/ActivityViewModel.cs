@@ -1,4 +1,4 @@
-﻿namespace PlayingWithMarketo.ViewModels
+﻿namespace PlayingWithMarketo.Core.ViewModels
 {
     public class ActivityViewModel
     {
