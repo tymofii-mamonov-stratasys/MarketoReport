@@ -15,10 +15,13 @@ namespace PlayingWithMarketo.Controllers
     public class MarketoController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly MarketoHelper _marketoHelper;
 
         public MarketoController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
+            _marketoHelper = new MarketoHelper(_unitOfWork);
+
         }
 
         public ViewResult Home()
@@ -50,8 +53,8 @@ namespace PlayingWithMarketo.Controllers
             if (leadsActivitiesList.Count == 0
                 || leadsActivitiesList.Max(la => la.ActivityDate) <= end.AddDays(-1))
             {
-                var exportJobId = MarketoHelper.CreateExportJob(start, end);
-                MarketoHelper.QueueJob(exportJobId);
+                var exportJobId = _marketoHelper.CreateExportJob(start, end);
+                _marketoHelper.QueueJob(exportJobId);
 
                 string jobStatus = "";
                 Status? jobStatusEnum;
@@ -60,11 +63,11 @@ namespace PlayingWithMarketo.Controllers
 
                 while (jobStatusEnum != Status.Completed && jobStatusEnum != Status.Failed)
                 {
-                    jobStatusEnum = MarketoHelper.GetJobStatus(exportJobId);
+                    jobStatusEnum = _marketoHelper.GetJobStatus(exportJobId);
                     Thread.Sleep(2000);
                 }
 
-                var resultIsRetreived = MarketoHelper.RetreiveData(exportJobId);
+                var resultIsRetreived = _marketoHelper.RetreiveData(exportJobId);
             }
 
 

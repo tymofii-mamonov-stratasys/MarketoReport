@@ -200,6 +200,7 @@
     <Compile Include="App_Start\NinjectWebCommon.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Core\Repositories\ITokenRepository.cs" />
     <Compile Include="Core\ViewModels\MarketoViewModel.cs" />
     <Compile Include="Core\ViewModels\ActivityViewModel.cs" />
     <Compile Include="Controllers\MarketoController.cs" />
@@ -248,6 +249,7 @@
     <Compile Include="Persistance\IMarketoDbContext.cs" />
     <Compile Include="Persistance\Repositories\LeadActivityRepository.cs" />
     <Compile Include="Persistance\MarketoHelper.cs" />
+    <Compile Include="Persistance\TokenRepository.cs" />
     <Compile Include="Persistance\UnitOfWork.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

@@ -1,5 +1,6 @@
 ﻿using log4net;
 using Newtonsoft.Json;
+using PlayingWithMarketo.Core;
 using PlayingWithMarketo.Core.Models;
 using PlayingWithMarketo.Marketo.DTO;
 using PlayingWithMarketo.Marketo.Enums;
@@ -14,18 +15,29 @@ namespace PlayingWithMarketo.Persistance
     public class MarketoHelper
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(MarketoHelper));
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly MarketoAPIHelper marketoAPIHelper;
 
-        public static string GetToken()
+        public MarketoHelper(IUnitOfWork unitOfWork)
         {
-            using (var db = new MarketoDbContext())
+            _unitOfWork = unitOfWork;
+            marketoAPIHelper = new MarketoAPIHelper(_unitOfWork);
+        }
+
+        public string GetToken()
+        {
+            //using (var db = new MarketoDbContext())
+            //{
+            var token = _unitOfWork.Tokens.GetToken();
+            //db.Tokens.FirstOrDefault(t => t.ExpiresAt > DateTime.UtcNow);
+
+            if (token != null)
+                return token.AccessToken;
+
+            Dictionary<string, string> dict = marketoAPIHelper.GetTokenRequest();
+
+            if (dict != null)
             {
-                var token = db.Tokens.FirstOrDefault(t => t.ExpiresAt > DateTime.UtcNow);
-
-                if (token != null)
-                    return token.AccessToken;
-
-                Dictionary<string, string> dict = MarketoAPIHelper.GetTokenRequest();
-
                 token = new Token()
                 {
                     AccessToken = dict["access_token"],
@@ -34,16 +46,19 @@ namespace PlayingWithMarketo.Persistance
                     UserName = dict["scope"]
                 };
 
-                db.Tokens.Add(token);
-                db.SaveChanges();
+                _unitOfWork.Tokens.AddToken(token);
+                _unitOfWork.Complete();
 
                 return token.AccessToken;
             }
+            else
+                return null;
+            //}
         }
 
-        public static string CreateExportJob(DateTime startDate, DateTime endDate)
+        public string CreateExportJob(DateTime startDate, DateTime endDate)
         {
-            var json = MarketoAPIHelper.CreateExportJobRequest(startDate, endDate);
+            var json = marketoAPIHelper.CreateExportJobRequest(startDate, endDate);
             var createJobResult = JsonConvert.DeserializeObject<RequestResult>(json);
 
             if (!createJobResult.success)
@@ -71,9 +86,9 @@ namespace PlayingWithMarketo.Persistance
             }
         }
 
-        public static void QueueJob(string exportJobId)
+        public void QueueJob(string exportJobId)
         {
-            var json = MarketoAPIHelper.QueueJobRequest(exportJobId);
+            var json = marketoAPIHelper.QueueJobRequest(exportJobId);
             var queueJobResult = JsonConvert.DeserializeObject<RequestResult>(json);
 
             if (!queueJobResult.success)
@@ -93,9 +108,9 @@ namespace PlayingWithMarketo.Persistance
             }
         }
 
-        public static Status? GetJobStatus(string exportJobId)
+        public Status? GetJobStatus(string exportJobId)
         {
-            var json = MarketoAPIHelper.GetJobStatusRequest(exportJobId);
+            var json = marketoAPIHelper.GetJobStatusRequest(exportJobId);
             var jobStatusResult = JsonConvert.DeserializeObject<RequestResult>(json);
 
             if (!jobStatusResult.success)
@@ -126,9 +141,9 @@ namespace PlayingWithMarketo.Persistance
             }
         }
 
-        public static bool RetreiveData(string exportJobId)
+        public bool RetreiveData(string exportJobId)
         {
-            var result = MarketoAPIHelper.RetreiveDataRequest(exportJobId);
+            var result = marketoAPIHelper.RetreiveDataRequest(exportJobId);
             try
             {
                 var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(result);
@@ -199,7 +214,7 @@ namespace PlayingWithMarketo.Persistance
             return true;
         }
 
-        public static void PullMissingLeads(List<int> leadIdList)
+        public void PullMissingLeads(List<int> leadIdList)
         {
             using (var db = new MarketoDbContext())
             {
@@ -208,7 +223,7 @@ namespace PlayingWithMarketo.Persistance
                     var leadIsInDB = db.Leads.Any(l => l.LeadId == leadId);
                     if (!leadIsInDB)
                     {
-                        var json = MarketoAPIHelper.PullMissingLeadRequest(leadId);
+                        var json = marketoAPIHelper.PullMissingLeadRequest(leadId);
 
                         var leadInfo = JsonConvert.DeserializeObject<RequestResult>(json);
                         if (leadInfo.success)
@@ -232,7 +247,7 @@ namespace PlayingWithMarketo.Persistance
             }
         }
 
-        public static void ErrorHandling(string method, RequestResultError resultError)
+        public void ErrorHandling(string method, RequestResultError resultError)
         {
             GlobalContext.Properties["Method"] = method;
             log.Error($"Error returned with code: {resultError.errors.Single().code}",

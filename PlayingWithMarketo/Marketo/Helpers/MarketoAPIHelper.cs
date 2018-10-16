@@ -1,5 +1,6 @@
 ﻿using log4net;
 using Newtonsoft.Json;
+using PlayingWithMarketo.Core;
 using PlayingWithMarketo.Marketo.DTO;
 using System;
 using System.Collections.Generic;
@@ -9,22 +10,30 @@ using System.Text;
 
 namespace PlayingWithMarketo.Marketo.Helpers
 {
-    public static class MarketoAPIHelper
+    public class MarketoAPIHelper
     {
-        private static string host = ConfigurationManager.AppSettings["host"];
-        private static string clientId = ConfigurationManager.AppSettings["clientId"];
-        private static string clientSecret = ConfigurationManager.AppSettings["clientSecret"];
-        private static string queryFields = ConfigurationManager.AppSettings["queryFields"];
-        private static string activityTypeIds = ConfigurationManager.AppSettings["actiityTypeIds"];
-        private static readonly ILog log = LogManager.GetLogger(typeof(MarketoAPIHelper));
+        private string host = ConfigurationManager.AppSettings["host"];
+        private string clientId = ConfigurationManager.AppSettings["clientId"];
+        private string clientSecret = ConfigurationManager.AppSettings["clientSecret"];
+        private string queryFields = ConfigurationManager.AppSettings["queryFields"];
+        private string activityTypeIds = ConfigurationManager.AppSettings["actiityTypeIds"];
+        private readonly ILog log = LogManager.GetLogger(typeof(MarketoAPIHelper));
+        private readonly APIRequestHelper requestHelper;
+        private readonly IUnitOfWork _unitOfWork;
+
+        public MarketoAPIHelper(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+            requestHelper = new APIRequestHelper(_unitOfWork);
+        }
 
 
-        public static Dictionary<string, string> GetTokenRequest()
+        public Dictionary<string, string> GetTokenRequest()
         {
             string url = host + "/identity/oauth/token?grant_type=client_credentials&client_id=" + clientId +
                 "&client_secret=" + clientSecret;
 
-            var json = APIRequestHelper.SendRequest(url);
+            var json = requestHelper.SendRequest(url);
 
             if (json != null)
                 return JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
@@ -32,7 +41,7 @@ namespace PlayingWithMarketo.Marketo.Helpers
                 return null;
         }
 
-        public static string CreateExportJobRequest(DateTime startDate, DateTime endDate)
+        public string CreateExportJobRequest(DateTime startDate, DateTime endDate)
         {
             string url = host + "/bulk/v1/activities/export/create.json";
             var fieldsArray = queryFields.Split(',');
@@ -55,31 +64,31 @@ namespace PlayingWithMarketo.Marketo.Helpers
             };
 
             var dataToSend = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(job));
-            return APIRequestHelper.SendRequest(url, dataToSend, "POST", true);
+            return requestHelper.SendRequest(url, dataToSend, "POST", true);
         }
 
-        public static string QueueJobRequest(string exportJobId)
+        public string QueueJobRequest(string exportJobId)
         {
             string url = $"{host}/bulk/v1/activities/export/{exportJobId}/enqueue.json";
-            return APIRequestHelper.SendRequest(url, method: "POST", tokenRequired: true);
+            return requestHelper.SendRequest(url, method: "POST", tokenRequired: true);
         }
 
-        public static string GetJobStatusRequest(string exportJobId)
+        public string GetJobStatusRequest(string exportJobId)
         {
             string url = $"{host}/bulk/v1/activities/export/{exportJobId}/status.json";
-            return APIRequestHelper.SendRequest(url, tokenRequired: true);
+            return requestHelper.SendRequest(url, tokenRequired: true);
         }
 
-        public static string RetreiveDataRequest(string exportJobId)
+        public string RetreiveDataRequest(string exportJobId)
         {
             string url = $"{host}/bulk/v1/activities/export/{exportJobId}/file.json";
-            return APIRequestHelper.SendRequest(url, tokenRequired: true);
+            return requestHelper.SendRequest(url, tokenRequired: true);
         }
 
-        public static string PullMissingLeadRequest(int leadId)
+        public string PullMissingLeadRequest(int leadId)
         {
             var url = $"{host}/rest/v1/lead/{leadId}.json?fields=sfdcLeadId,id,SFDCCampaignID";
-            return APIRequestHelper.SendRequest(url, tokenRequired: true);
+            return requestHelper.SendRequest(url, tokenRequired: true);
         }
     }
 }

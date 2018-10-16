@@ -7,6 +7,7 @@ namespace PlayingWithMarketo.Core
         ILeadActivityRepository LeadActivities { get; set; }
         IActivityRepository Activities { get; set; }
         IExportJobRepository ExportJobs { get; set; }
+        ITokenRepository Tokens { get; set; }
         void Complete();
     }
 }

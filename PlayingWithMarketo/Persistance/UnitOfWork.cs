@@ -10,6 +10,7 @@ namespace PlayingWithMarketo.Persistance
         public ILeadActivityRepository LeadActivities { get; set; }
         public IActivityRepository Activities { get; set; }
         public IExportJobRepository ExportJobs { get; set; }
+        public ITokenRepository Tokens { get; set; }
 
         public UnitOfWork(MarketoDbContext context)
         {
@@ -17,6 +18,7 @@ namespace PlayingWithMarketo.Persistance
             LeadActivities = new LeadActivityRepository(_context);
             Activities = new ActivityRepository(_context);
             ExportJobs = new ExportJobRespository(_context);
+            Tokens = new TokenRepository(_context);
         }
 
         public void Complete()
