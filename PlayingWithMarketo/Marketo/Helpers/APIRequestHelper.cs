@@ -1,6 +1,4 @@
 ﻿using log4net;
-using PlayingWithMarketo.Core;
-using PlayingWithMarketo.Persistance;
 using System;
 using System.IO;
 using System.Net;
@@ -10,20 +8,14 @@ namespace PlayingWithMarketo.Marketo.Helpers
     public class APIRequestHelper
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(APIRequestHelper));
-        private readonly IUnitOfWork _unitOfWork;
 
-        public APIRequestHelper (IUnitOfWork unitOfWork)
-        {
-            _unitOfWork = unitOfWork;
-        }
-
-        public string SendRequest(string url, byte[] dataToSend = null, string method = "GET", bool tokenRequired = false)
+        public string SendRequest(string url, byte[] dataToSend = null, string method = "GET", string token = null)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.ContentType = "application/json";
-            if (tokenRequired)
+            if (token != null)
             {
-                var value = "Bearer " + new MarketoHelper(_unitOfWork).GetToken();
+                var value = "Bearer " + token;
                 request.Headers.Add(HttpRequestHeader.Authorization, value);
             }
 

@@ -3,5 +3,6 @@
     public interface IActivityRepository
     {
         string GetActivity(int activityId);
+        int GetId(int activityId);
     }
 }

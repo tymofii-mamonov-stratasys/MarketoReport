@@ -17,5 +17,11 @@ namespace PlayingWithMarketo.Persistance.Repositories
             return
                 _context.Activities.Single(a => a.Id == activityId).ActivityName;
         }
+
+        public int GetId(int activityId)
+        {
+            return
+                _context.Activities.Single(a => a.ActivityId == activityId).Id;
+        }
     }
 }

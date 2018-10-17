@@ -25,6 +25,11 @@ namespace PlayingWithMarketo.Persistance.Repositories
                     .Include(a => a.Activity);
         }
 
+        public void AddLeadActivity(LeadActivity leadActivity)
+        {
+            _context.LeadActivities.Add(leadActivity);
+        }
+
         public LeadActivityRepository(IMarketoDbContext context)
         {
             _context = context;

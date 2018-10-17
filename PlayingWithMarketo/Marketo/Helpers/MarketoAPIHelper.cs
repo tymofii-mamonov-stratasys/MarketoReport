@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using PlayingWithMarketo.Core;
 using PlayingWithMarketo.Marketo.DTO;
+using PlayingWithMarketo.Persistance;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -24,7 +25,7 @@ namespace PlayingWithMarketo.Marketo.Helpers
         public MarketoAPIHelper(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            requestHelper = new APIRequestHelper(_unitOfWork);
+            requestHelper = new APIRequestHelper();
         }
 
 
@@ -64,31 +65,31 @@ namespace PlayingWithMarketo.Marketo.Helpers
             };
 
             var dataToSend = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(job));
-            return requestHelper.SendRequest(url, dataToSend, "POST", true);
+            return requestHelper.SendRequest(url, dataToSend, "POST", new MarketoHelper(_unitOfWork).GetToken());
         }
 
         public string QueueJobRequest(string exportJobId)
         {
             string url = $"{host}/bulk/v1/activities/export/{exportJobId}/enqueue.json";
-            return requestHelper.SendRequest(url, method: "POST", tokenRequired: true);
+            return requestHelper.SendRequest(url, method: "POST", token: new MarketoHelper(_unitOfWork).GetToken());
         }
 
         public string GetJobStatusRequest(string exportJobId)
         {
             string url = $"{host}/bulk/v1/activities/export/{exportJobId}/status.json";
-            return requestHelper.SendRequest(url, tokenRequired: true);
+            return requestHelper.SendRequest(url, token: new MarketoHelper(_unitOfWork).GetToken());
         }
 
         public string RetreiveDataRequest(string exportJobId)
         {
             string url = $"{host}/bulk/v1/activities/export/{exportJobId}/file.json";
-            return requestHelper.SendRequest(url, tokenRequired: true);
+            return requestHelper.SendRequest(url, token: new MarketoHelper(_unitOfWork).GetToken());
         }
 
         public string PullMissingLeadRequest(int leadId)
         {
             var url = $"{host}/rest/v1/lead/{leadId}.json?fields=sfdcLeadId,id,SFDCCampaignID";
-            return requestHelper.SendRequest(url, tokenRequired: true);
+            return requestHelper.SendRequest(url, token: new MarketoHelper(_unitOfWork).GetToken());
         }
     }
 }

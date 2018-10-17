@@ -3,7 +3,7 @@ using PlayingWithMarketo.Core.Repositories;
 using System;
 using System.Linq;
 
-namespace PlayingWithMarketo.Persistance
+namespace PlayingWithMarketo.Persistance.Repositories
 {
     public class TokenRepository : ITokenRepository
     {

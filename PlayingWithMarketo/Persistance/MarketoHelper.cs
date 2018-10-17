@@ -26,10 +26,7 @@ namespace PlayingWithMarketo.Persistance
 
         public string GetToken()
         {
-            //using (var db = new MarketoDbContext())
-            //{
             var token = _unitOfWork.Tokens.GetToken();
-            //db.Tokens.FirstOrDefault(t => t.ExpiresAt > DateTime.UtcNow);
 
             if (token != null)
                 return token.AccessToken;
@@ -53,7 +50,6 @@ namespace PlayingWithMarketo.Persistance
             }
             else
                 return null;
-            //}
         }
 
         public string CreateExportJob(DateTime startDate, DateTime endDate)
@@ -69,21 +65,18 @@ namespace PlayingWithMarketo.Persistance
                 return null;
             }
 
-            using (var db = new MarketoDbContext())
+            var exportJob = new ExportJob()
             {
-                var exportJob = new ExportJob()
-                {
-                    ExportId = createJobResult.result.Single().exportId,
-                    Format = createJobResult.result.Single().format,
-                    Status = createJobResult.result.Single().status,
-                    CreatedAt = createJobResult.result.Single().createdAt
-                };
+                ExportId = createJobResult.result.Single().exportId,
+                Format = createJobResult.result.Single().format,
+                Status = createJobResult.result.Single().status,
+                CreatedAt = createJobResult.result.Single().createdAt
+            };
 
-                db.ExportJobs.Add(exportJob);
-                db.SaveChanges();
+            _unitOfWork.ExportJobs.AddExportJob(exportJob);
+            _unitOfWork.Complete();
 
-                return exportJob.ExportId;
-            }
+            return exportJob.ExportId;
         }
 
         public void QueueJob(string exportJobId)
@@ -98,14 +91,11 @@ namespace PlayingWithMarketo.Persistance
 
                 return;
             }
-            using (var db = new MarketoDbContext())
-            {
-                var exportJobToQueue = db.ExportJobs.FirstOrDefault(j => j.ExportId == exportJobId);
-                exportJobToQueue.Status = queueJobResult.result.Single().status;
-                exportJobToQueue.QueuedAt = queueJobResult.result.Single().queuedAt;
+            var exportJobToQueue = _unitOfWork.ExportJobs.GetExportJob(exportJobId);
+            exportJobToQueue.Status = queueJobResult.result.Single().status;
+            exportJobToQueue.QueuedAt = queueJobResult.result.Single().queuedAt;
 
-                db.SaveChanges();
-            }
+            _unitOfWork.Complete();
         }
 
         public Status? GetJobStatus(string exportJobId)
@@ -120,25 +110,22 @@ namespace PlayingWithMarketo.Persistance
 
                 return null;
             }
-            using (var db = new MarketoDbContext())
+            var exportJob = _unitOfWork.ExportJobs.GetExportJob(exportJobId);
+            var status = jobStatusResult.result.Single().status;
+            exportJob.Status = status;
+
+            if (jobStatusResult.result.Single().finishedAt != DateTime.MinValue)
             {
-                var exportJob = db.ExportJobs.SingleOrDefault(j => j.ExportId == exportJobId);
-                var status = jobStatusResult.result.Single().status;
-                exportJob.Status = status;
-
-                if (jobStatusResult.result.Single().finishedAt != DateTime.MinValue)
-                {
-                    exportJob.FinishedAt = jobStatusResult.result.Single().finishedAt;
-                    exportJob.NumberOfRecords = jobStatusResult.result.Single().numberOfRecords;
-                    exportJob.FileSize = jobStatusResult.result.Single().fileSize;
-                }
-                if (jobStatusResult.result.Single().startedAt != DateTime.MinValue)
-                    exportJob.StartedAt = jobStatusResult.result.Single().startedAt;
-
-                db.SaveChanges();
-
-                return (Status)Enum.Parse(typeof(Status), status, true);
+                exportJob.FinishedAt = jobStatusResult.result.Single().finishedAt;
+                exportJob.NumberOfRecords = jobStatusResult.result.Single().numberOfRecords;
+                exportJob.FileSize = jobStatusResult.result.Single().fileSize;
             }
+            if (jobStatusResult.result.Single().startedAt != DateTime.MinValue)
+                exportJob.StartedAt = jobStatusResult.result.Single().startedAt;
+
+            _unitOfWork.Complete();
+
+            return (Status)Enum.Parse(typeof(Status), status, true);
         }
 
         public bool RetreiveData(string exportJobId)
@@ -193,58 +180,52 @@ namespace PlayingWithMarketo.Persistance
                 leadActivitiesList.Add(leadActivity);
             }
             PullMissingLeads(leadIdList);
-            using (var db = new MarketoDbContext())
+            foreach (var leadActivity in leadActivitiesList)
             {
-                foreach (var leadActivity in leadActivitiesList)
-                {
-                    int activityDBId = 0;
-                    int leadDbId = 0;
+                int activityDBId = 0;
+                int leadDbId = 0;
 
-                    activityDBId = db.Activities.Single(a => a.ActivityId == leadActivity.ActivityId).Id;
-                    leadDbId = db.Leads.Single(l => l.LeadId == leadActivity.LeadId).Id;
+                activityDBId = _unitOfWork.Activities.GetId(leadActivity.ActivityId);
 
-                    leadActivity.LeadId = leadDbId;
-                    leadActivity.ActivityId = activityDBId;
+                leadDbId = _unitOfWork.Leads.GetId(leadActivity.LeadId);
 
-                    db.LeadActivities.Add(leadActivity);
-                }
-
-                db.SaveChanges();
+                leadActivity.LeadId = leadDbId;
+                leadActivity.ActivityId = activityDBId;
+                _unitOfWork.LeadActivities.AddLeadActivity(leadActivity);
             }
+
+            _unitOfWork.Complete();
             return true;
         }
 
         public void PullMissingLeads(List<int> leadIdList)
         {
-            using (var db = new MarketoDbContext())
+            foreach (var leadId in leadIdList)
             {
-                foreach (var leadId in leadIdList)
+                var leadIsInDB = _unitOfWork.Leads.LeadIsInDb(leadId);
+                if (!leadIsInDB)
                 {
-                    var leadIsInDB = db.Leads.Any(l => l.LeadId == leadId);
-                    if (!leadIsInDB)
+                    var json = marketoAPIHelper.PullMissingLeadRequest(leadId);
+
+                    var leadInfo = JsonConvert.DeserializeObject<RequestResult>(json);
+                    if (leadInfo.success)
                     {
-                        var json = marketoAPIHelper.PullMissingLeadRequest(leadId);
 
-                        var leadInfo = JsonConvert.DeserializeObject<RequestResult>(json);
-                        if (leadInfo.success)
+                        var lead = new Lead()
                         {
-
-                            var lead = new Lead()
-                            {
-                                LeadId = leadId,
-                                SFDCId = leadInfo.result.FirstOrDefault().sfdcLeadId,
-                                CampaignId = leadInfo.result.FirstOrDefault().SFDCCampaignID
-                            };
-                            db.Leads.Add(lead);
-                        }
-                        else
-                            ErrorHandling("Get Lead Info", JsonConvert.DeserializeObject<RequestResultError>(json));
-
-                        Thread.Sleep(2000);
+                            LeadId = leadId,
+                            SFDCId = leadInfo.result.FirstOrDefault().sfdcLeadId,
+                            CampaignId = leadInfo.result.FirstOrDefault().SFDCCampaignID
+                        };
+                        _unitOfWork.Leads.AddLead(lead);
                     }
+                    else
+                        ErrorHandling("Get Lead Info", JsonConvert.DeserializeObject<RequestResultError>(json));
+
+                    Thread.Sleep(2000);
                 }
-                db.SaveChanges();
             }
+            _unitOfWork.Complete();
         }
 
         public void ErrorHandling(string method, RequestResultError resultError)
