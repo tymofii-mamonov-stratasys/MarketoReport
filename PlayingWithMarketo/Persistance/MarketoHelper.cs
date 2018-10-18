@@ -176,8 +176,8 @@ namespace PlayingWithMarketo.Persistance
                     Attributes = attributes
                 };
 
-
-                leadActivitiesList.Add(leadActivity);
+                if (!_unitOfWork.LeadActivities.IsInDB(leadActivity))
+                    leadActivitiesList.Add(leadActivity);
             }
             PullMissingLeads(leadIdList);
             foreach (var leadActivity in leadActivitiesList)
@@ -206,8 +206,13 @@ namespace PlayingWithMarketo.Persistance
                 if (!leadIsInDB)
                 {
                     var json = marketoAPIHelper.PullMissingLeadRequest(leadId);
-
                     var leadInfo = JsonConvert.DeserializeObject<RequestResult>(json);
+
+                    if (leadInfo.result.FirstOrDefault().sfdcLeadId == null)
+                    {
+                        json = marketoAPIHelper.PullMissingLeadRequest(leadId, "sfdcContactId");
+                        leadInfo = JsonConvert.DeserializeObject<RequestResult>(json);
+                    }
                     if (leadInfo.success)
                     {
 

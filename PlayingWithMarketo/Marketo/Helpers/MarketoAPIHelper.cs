@@ -86,9 +86,9 @@ namespace PlayingWithMarketo.Marketo.Helpers
             return requestHelper.SendRequest(url, token: new MarketoHelper(_unitOfWork).GetToken());
         }
 
-        public string PullMissingLeadRequest(int leadId)
+        public string PullMissingLeadRequest(int leadId, string SFDCType = "sfdcLeadId")
         {
-            var url = $"{host}/rest/v1/lead/{leadId}.json?fields=sfdcLeadId,id,SFDCCampaignID";
+            var url = $"{host}/rest/v1/lead/{leadId}.json?fields={SFDCType},id,SFDCCampaignID";
             return requestHelper.SendRequest(url, token: new MarketoHelper(_unitOfWork).GetToken());
         }
     }

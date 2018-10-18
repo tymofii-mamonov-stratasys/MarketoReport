@@ -6,7 +6,6 @@ using PlayingWithMarketo.Marketo.Enums;
 using PlayingWithMarketo.Persistance;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Web.Mvc;
 
@@ -50,8 +49,7 @@ namespace PlayingWithMarketo.Controllers
             var leadsActivitiesList = new List<LeadActivity>();
             leadsActivitiesList = _unitOfWork.LeadActivities.GetLeadActivities(start, end);
 
-            if (leadsActivitiesList.Count == 0
-                || leadsActivitiesList.Max(la => la.ActivityDate) <= end.AddDays(-1))
+            if (LeadActivity.ToBeUpdated(start, end, leadsActivitiesList))
             {
                 var exportJobId = _marketoHelper.CreateExportJob(start, end);
                 _marketoHelper.QueueJob(exportJobId);
@@ -67,7 +65,7 @@ namespace PlayingWithMarketo.Controllers
                     Thread.Sleep(2000);
                 }
 
-                var resultIsRetreived = _marketoHelper.RetreiveData(exportJobId);
+                _marketoHelper.RetreiveData(exportJobId);
             }
 
 

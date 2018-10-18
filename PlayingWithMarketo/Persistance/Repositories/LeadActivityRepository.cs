@@ -34,5 +34,11 @@ namespace PlayingWithMarketo.Persistance.Repositories
         {
             _context = context;
         }
+
+        public bool IsInDB(LeadActivity leadActivity)
+        {
+            return
+                _context.LeadActivities.Any(la => la.ActivityDate == leadActivity.ActivityDate);
+        }
     }
 }

@@ -10,5 +10,6 @@ namespace PlayingWithMarketo.Core.Repositories
         List<LeadActivity> GetLeadActivities(DateTime startDate, DateTime endDate);
         IQueryable<LeadActivity> GetLeadActivitiesWithIncludes(DateTime startDate, DateTime endDate);
         void AddLeadActivity(LeadActivity leadActivity);
+        bool IsInDB(LeadActivity leadActivity)
     }
 }
