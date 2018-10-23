@@ -245,6 +245,10 @@
     <Compile Include="Core\Models\Activity.cs" />
     <Compile Include="Core\Models\Lead.cs" />
     <Compile Include="Core\Models\LeadActivity.cs" />
+    <Compile Include="Persistance\Migrations\201810231235328_ChangeValidationCampaignId.cs" />
+    <Compile Include="Persistance\Migrations\201810231235328_ChangeValidationCampaignId.Designer.cs">
+      <DependentUpon>201810231235328_ChangeValidationCampaignId.cs</DependentUpon>
+    </Compile>
     <Compile Include="Persistance\Repositories\ActivityRepository.cs" />
     <Compile Include="Persistance\Repositories\ExportJobRespository.cs" />
     <Compile Include="Persistance\IMarketoDbContext.cs" />
@@ -369,6 +373,9 @@
     <EmbeddedResource Include="Persistance\Migrations\201810100930507_IncreaseAttributeCapacity4000.resx">
       <DependentUpon>201810100930507_IncreaseAttributeCapacity4000.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Persistance\Migrations\201810231235328_ChangeValidationCampaignId.resx">
+      <DependentUpon>201810231235328_ChangeValidationCampaignId.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -388,7 +395,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>50888</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:50889/</IISUrl>
+          <IISUrl>http://localhost:50888/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

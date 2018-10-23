@@ -9,7 +9,7 @@ namespace PlayingWithMarketo.Core.Models
         [Required]
         public int LeadId { get; set; }
 
-        [MaxLength(25)]
+        [MaxLength(250)]
         public string CampaignId { get; set; }
 
         [MaxLength(25)]

@@ -25,6 +25,7 @@ namespace PlayingWithMarketo.Persistance
 
         public void Complete()
         {
+            //_context.GetValidationErrors();
             _context.SaveChanges();
         }
     }

@@ -15,7 +15,14 @@ namespace PlayingWithMarketo.Persistance.Repositories
 
         public void AddLead(Lead lead)
         {
-            _context.Leads.Add(lead);
+            if (_context.Leads.Any(l => l.LeadId == lead.LeadId))
+            {
+                var existingLead = _context.Leads.SingleOrDefault(l => l.LeadId == lead.LeadId);
+                existingLead.SFDCId = lead.SFDCId;
+                existingLead.CampaignId = lead.CampaignId;
+            }
+            else
+                _context.Leads.Add(lead);
         }
 
         public int GetId(int leadId)

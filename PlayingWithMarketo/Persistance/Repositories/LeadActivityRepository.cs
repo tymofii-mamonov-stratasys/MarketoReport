@@ -2,6 +2,7 @@
 using PlayingWithMarketo.Core.Repositories;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Entity;
 using System.Linq;
 
@@ -10,6 +11,8 @@ namespace PlayingWithMarketo.Persistance.Repositories
     public class LeadActivityRepository : ILeadActivityRepository
     {
         private readonly IMarketoDbContext _context;
+        private readonly string activityId = ConfigurationManager.AppSettings["actiityTypeIds"];
+
         public List<LeadActivity> GetLeadActivities(DateTime startDate, DateTime endDate)
         {
             return _context.LeadActivities

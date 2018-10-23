@@ -34,12 +34,9 @@ namespace PlayingWithMarketo.Controllers
             DateTime start = DateTime.MinValue;
             DateTime end = DateTime.MinValue;
 
-            if (startDate != null || endDate != null)
-            {
-                page = page ?? 1;
-                ViewBag.StartDate = startDate;
-                ViewBag.EndDate = endDate;
-            }
+            page = page ?? 1;
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
 
             start = DateTime.Parse(ViewBag.StartDate);
             end = DateTime.Parse(ViewBag.EndDate);
@@ -51,7 +48,29 @@ namespace PlayingWithMarketo.Controllers
 
             if (LeadActivity.ToBeUpdated(start, end, leadsActivitiesList))
             {
+                var requestCount = 0;
+                //var jobStatusRequestCount = 0;
+                if (HttpContext.ApplicationInstance.Application["CreateExportRequestCount"] != null)
+                    requestCount = (int)HttpContext.ApplicationInstance.Application["CreateExportRequestCount"];
+                else
+                    HttpContext.ApplicationInstance.Application["CreateExportRequestCount"] = requestCount;
+
+                //if (HttpContext.ApplicationInstance.Application["JobStatusRequestCount"] != null)
+                //    jobStatusRequestCount = (int)HttpContext.ApplicationInstance.Application["JobStatusRequestCount"];
+                //else
+                //    HttpContext.ApplicationInstance.Application["JobStatusRequestCount"] = jobStatusRequestCount;
+
+                while (requestCount >= 2)
+                {
+                    Thread.Sleep(60000);
+                    requestCount = (int)HttpContext.ApplicationInstance.Application["CreateExportRequestCount"];
+                }
+
                 var exportJobId = _marketoHelper.CreateExportJob(start, end);
+
+                requestCount++;
+                HttpContext.ApplicationInstance.Application["CreateExportRequestCount"] = requestCount;
+
                 _marketoHelper.QueueJob(exportJobId);
 
                 string jobStatus = "";
@@ -61,9 +80,18 @@ namespace PlayingWithMarketo.Controllers
 
                 while (jobStatusEnum != Status.Completed && jobStatusEnum != Status.Failed)
                 {
+                    //while (jobStatusRequestCount >= 20)
+                    //{
+                    //    Thread.Sleep(2000);
+                    //    jobStatusRequestCount = (int)HttpContext.ApplicationInstance.Application["JobStatusRequestCount"];
+                    //}
+
                     jobStatusEnum = _marketoHelper.GetJobStatus(exportJobId);
                     Thread.Sleep(2000);
                 }
+
+                requestCount--;
+                HttpContext.ApplicationInstance.Application["CreateExportRequestCount"] = requestCount;
 
                 _marketoHelper.RetreiveData(exportJobId);
             }

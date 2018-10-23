@@ -222,6 +222,9 @@ namespace PlayingWithMarketo.Persistance
                             SFDCId = leadInfo.result.FirstOrDefault().sfdcLeadId,
                             CampaignId = leadInfo.result.FirstOrDefault().SFDCCampaignID
                         };
+                        //if (lead.CampaignId != null && lead.CampaignId.Length >= 25)
+                        //    continue;
+                        //throw new DbEntityValidationException($"The Campaign string is now right. CampaignId Value: {lead.CampaignId}");
                         _unitOfWork.Leads.AddLead(lead);
                     }
                     else
